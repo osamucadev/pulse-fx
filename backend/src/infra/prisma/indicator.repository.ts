@@ -10,4 +10,11 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
   findByCode(code: string): Promise<Indicator | null> {
     return prisma.indicator.findUnique({ where: { code } });
   }
+
+  async updateLastSyncedAt(indicatorId: string, syncedAt: Date): Promise<void> {
+    await prisma.indicator.update({
+      where: { id: indicatorId },
+      data: { lastSyncedAt: syncedAt },
+    });
+  }
 }
