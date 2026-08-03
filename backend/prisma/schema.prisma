@@ -13,3 +13,34 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Indicator {
+  id                     String    @id @default(uuid())
+  code                   String    @unique
+  name                   String
+  source                 String
+  type                   String
+  description            String    @db.Text
+  lastSyncedAt           DateTime? @map("last_synced_at")
+  syncTtlMinutes         Int       @map("sync_ttl_minutes")
+  refreshCooldownMinutes Int       @map("refresh_cooldown_minutes")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  observations IndicatorObservation[]
+
+  @@map("indicators")
+}
+
+model IndicatorObservation {
+  id            String   @id @default(uuid())
+  indicatorId   String   @map("indicator_id")
+  referenceDate DateTime @map("reference_date") @db.Date
+  value         Decimal
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  indicator Indicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+
+  @@unique([indicatorId, referenceDate])
+  @@map("indicator_observations")
+}
