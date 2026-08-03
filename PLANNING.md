@@ -6,6 +6,12 @@ Este documento registra o raciocínio por trás das principais decisões do proj
 
 O Pulse FX é o MVP proposto no desafio técnico full stack da Thomson Reuters. O objetivo é acompanhar câmbio (BRL) e indicadores macroeconômicos a partir de fontes públicas, com dados persistidos, API própria e cliente web.
 
+## Persona
+
+O produto foi pensado pra um usuário brasileiro comum que especula com câmbio de forma simples: compra dólar quando acha que o preço vai subir, espera a alta, e vende de volta pra lucrar na diferença. Não é um trader profissional nem alguém que opera com derivativos ou hedge cambial, é alguém acompanhando a cotação no dia a dia pra decidir a hora de comprar ou vender.
+
+Essa persona serve de referência pra decisões de produto ao longo do projeto, como qual cotação da PTAX é exibida pro indicador USD/BRL (ver seção de modelagem de dados, mais abaixo).
+
 ## Estrutura do repositório
 
 A opção foi por manter frontend e backend em pastas separadas na raiz do repositório (`/backend` e `/frontend`), sem uso de workspaces (pnpm, yarn ou npm workspaces) e sem pacote compartilhado entre eles.
@@ -47,6 +53,14 @@ A tabela `indicator_observations` guarda o histórico completo de valores de cad
 O campo de valor será do tipo decimal, não float, justamente pra evitar os erros de arredondamento que número de ponto flutuante binário costuma introduzir em dado financeiro.
 
 O histórico completo guardado desde o início também permite montar o gráfico de evolução na tela de detalhe de cada indicador, prevista no briefing.
+
+## Decisão: cotação de venda como valor do indicador USD/BRL
+
+A API PTAX do Banco Central retorna duas cotações por dia útil: `cotacaoCompra` e `cotacaoVenda`. Para o campo `IndicatorObservation.value` do indicador `usd_brl`, foi escolhido persistir a cotação de venda (`sellRate`), não a de compra (`buyRate`).
+
+Dois motivos levaram a essa escolha. Primeiro, a cotação de venda é a que aparece no noticiário e no senso comum quando alguém fala "o dólar está a R$X", é o número com que o usuário já está familiarizado. Segundo, e mais importante à luz da persona descrita acima, é exatamente o preço que ela acompanha: o valor pelo qual consegue vender o dólar que já possui, ou seja, o número relevante pra decidir a hora de realizar o lucro.
+
+A cotação de compra (`buyRate`) continua disponível no retorno de `fetchUsdBrlRates` (não foi descartada do client), caso um dia faça sentido expor as duas cotações no produto. Nessa versão do MVP, porém, só a cotação de venda é persistida.
 
 ## Pontos em aberto
 
