@@ -4,6 +4,7 @@
   "private": true,
   "description": "Pulse FX backend (Node.js + TypeScript + Prisma)",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
