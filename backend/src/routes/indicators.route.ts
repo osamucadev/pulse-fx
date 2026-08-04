@@ -20,11 +20,60 @@ function last90DaysRange(now: Date): SyncRange {
   };
 }
 
+/**
+ * @openapi
+ * /indicators:
+ *   get:
+ *     summary: List all indicators
+ *     description: Returns the indicator catalog (USD/BRL, Selic, Fed Funds Rate). Reads only what is already persisted, never triggers an external sync.
+ *     responses:
+ *       200:
+ *         description: List of indicators.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/IndicatorSummary'
+ */
 indicatorsRouter.get("/indicators", async (_req, res) => {
   const indicators = await indicatorRepository.findAll();
   res.status(200).json(indicators.map(toIndicatorSummary));
 });
 
+/**
+ * @openapi
+ * /indicators/{code}:
+ *   get:
+ *     summary: Get a single indicator by code
+ *     description: >
+ *       Returns one indicator. Before responding, checks whether its data
+ *       is older than syncTtlMinutes; if so, fetches fresh data from the
+ *       external source and persists it first (passive TTL sync).
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: usd_brl
+ *         description: Indicator code (usd_brl, selic, fed_funds_rate).
+ *     responses:
+ *       200:
+ *         description: The indicator.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/IndicatorSummary'
+ *       404:
+ *         description: No indicator exists with the given code.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: 'Indicator "unknown" not found'
+ */
 indicatorsRouter.get("/indicators/:code", async (req, res) => {
   const { code } = req.params;
   const indicator = await indicatorRepository.findByCode(code);
@@ -53,6 +102,53 @@ indicatorsRouter.get("/indicators/:code", async (req, res) => {
   res.status(200).json(toIndicatorSummary(updated ?? indicator));
 });
 
+/**
+ * @openapi
+ * /indicators/{code}/refresh:
+ *   post:
+ *     summary: Force a sync for a single indicator
+ *     description: >
+ *       Forces a fresh fetch from the external source, bypassing the
+ *       passive TTL, but still subject to refreshCooldownMinutes counted
+ *       from the last real sync (not from the last refresh attempt).
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: usd_brl
+ *         description: Indicator code (usd_brl, selic, fed_funds_rate).
+ *     responses:
+ *       200:
+ *         description: Sync completed, returns the updated indicator.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/IndicatorSummary'
+ *       404:
+ *         description: No indicator exists with the given code.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: 'Indicator "unknown" not found'
+ *       429:
+ *         description: The refresh cooldown has not expired yet.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 minutesRemaining:
+ *                   type: integer
+ *             example:
+ *               message: Refresh cooldown has not expired yet
+ *               minutesRemaining: 30
+ */
 indicatorsRouter.post("/indicators/:code/refresh", async (req, res) => {
   const { code } = req.params;
   const indicator = await indicatorRepository.findByCode(code);
