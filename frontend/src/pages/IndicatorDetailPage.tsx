@@ -159,6 +159,7 @@ function IndicatorDetailView({ code }: { code: string }) {
           </div>
           <button
             type="button"
+            data-tour="detail-refresh"
             onClick={handleSync}
             disabled={isSyncing}
             aria-label="Sincronizar indicador"
@@ -182,7 +183,7 @@ function IndicatorDetailView({ code }: { code: string }) {
             <VariationBadge variationPercent={indicator.variationPercent} />
           </div>
         </div>
-        <div>
+        <div data-tour="lookback-select">
           <label htmlFor="lookback" className="block text-xs text-gray-400">
             Comparar com
           </label>
@@ -201,7 +202,7 @@ function IndicatorDetailView({ code }: { code: string }) {
         </div>
       </div>
 
-      <div className="mt-8">
+      <div data-tour="indicator-chart" className="mt-8">
         <IndicatorChart observations={indicator.observations} type={indicator.type} />
       </div>
 

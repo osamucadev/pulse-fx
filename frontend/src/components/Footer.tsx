@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { RotateCcw } from 'lucide-react'
+import { HelpCircle, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { resetData } from '../api/client'
+import { useTour } from '../tour/useTour'
 import { ConfirmModal } from './ConfirmModal'
 
 export function Footer() {
@@ -10,6 +11,8 @@ export function Footer() {
   const [feedback, setFeedback] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { startTour } = useTour()
 
   const resetMutation = useMutation({
     mutationFn: resetData,
@@ -27,8 +30,16 @@ export function Footer() {
     },
   })
 
+  function handleRevisitTour() {
+    if (location.pathname !== '/') {
+      navigate('/', { viewTransition: true })
+    }
+
+    startTour()
+  }
+
   return (
-    <footer className="w-full border-t border-gray-100 px-8 py-4">
+    <footer data-tour="app-footer" className="w-full border-t border-gray-100 px-8 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-gray-400">
           Este projeto tem finalidade educacional e de demonstração técnica. As informações
@@ -44,6 +55,14 @@ export function Footer() {
           >
             Sobre
           </Link>
+          <button
+            type="button"
+            onClick={handleRevisitTour}
+            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 transition-colors hover:text-primary"
+          >
+            <HelpCircle size={14} />
+            Revisitar tour
+          </button>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}

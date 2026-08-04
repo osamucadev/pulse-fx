@@ -3,6 +3,7 @@ import { Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { toggleFavorite, type Indicator } from '../api/client'
+import { TOUR_INDICATOR_CODE } from '../tour/steps'
 import { formatLastValue, formatReferenceDate } from '../utils/formatIndicator'
 import { IndicatorTypeIcon } from './IndicatorTypeIcon'
 import { VariationBadge } from './VariationBadge'
@@ -13,6 +14,9 @@ interface IndicatorCardProps {
 
 export function IndicatorCard({ indicator }: IndicatorCardProps) {
   const queryClient = useQueryClient()
+  // The guided tour needs a single, predictable card to point at; the
+  // rest of the cards don't get these attributes.
+  const isTourCard = indicator.code === TOUR_INDICATOR_CODE
 
   const favoriteMutation = useMutation({
     mutationFn: (nextIsFavorite: boolean) => toggleFavorite(indicator.code, nextIsFavorite),
@@ -57,6 +61,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
     >
       <button
         type="button"
+        data-tour={isTourCard ? 'favorite-star' : undefined}
         onClick={() => favoriteMutation.mutate(!indicator.isFavorite)}
         disabled={favoriteMutation.isPending}
         aria-label={indicator.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
@@ -74,12 +79,13 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
       <p className="mt-1 text-xs text-gray-400">
         <span className="font-medium">Ref.:</span> {formatReferenceDate(indicator.lastReferenceDate)}
       </p>
-      <div className="mt-2 text-sm font-medium">
+      <div data-tour={isTourCard ? 'variation-icon' : undefined} className="mt-2 text-sm font-medium">
         <VariationBadge variationPercent={indicator.variationPercent} />
       </div>
       <Link
         to={`/indicators/${indicator.code}`}
         viewTransition
+        data-tour={isTourCard ? 'view-details' : undefined}
         className="mt-3 inline-block text-sm font-medium text-primary transition-colors hover:text-primary-hover"
       >
         Ver detalhes
