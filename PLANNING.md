@@ -84,6 +84,22 @@ Essa escolha só faz sentido porque o MVP é single-user, sem autenticação (fo
 
 Se autenticação for adicionada no futuro, esse campo precisaria ser repensado como uma relação (ex: tabela `user_favorite_indicators`, com chave composta usuário + indicador), já que múltiplos usuários teriam suas próprias listas de favoritos.
 
+## Decisão: Yarn Classic em vez de npm no frontend
+
+O scaffold do frontend (Vite + React + TypeScript) usa Yarn Classic (v1.22.22) como gerenciador de pacotes, não npm. Essa escolha vale só pra pasta `frontend/`, o backend continua normalmente com npm, cada pasta com seu próprio gerenciador, sem workspace compartilhado entre eles (ver seção de estrutura do repositório, mais acima).
+
+O motivo é técnico, não uma preferência arbitrária. A versão atual do Vite (8.x) usa o Rolldown como motor de bundling, que declara binários nativos para várias plataformas como `optionalDependencies` no `package.json`. Isso faz o processo de instalação disparar um número grande de requisições pequenas ao registry, uma por combinação de plataforma/arquitetura. Com `npm create vite@latest`, essa instalação travava indefinidamente, sem erro, sem timeout, só nunca terminava. `curl` e `npm ping` confirmaram que a rede e o registry estavam saudáveis, então o problema era específico de como o cliente do npm lida com esse volume de `optionalDependencies` do Rolldown, não da rede em si.
+
+Trocando para Yarn Classic, com `yarn create vite . --template react-ts`, a mesma instalação completou em segundos, sem travar. Por isso, todo comando de instalação dentro de `frontend/` deve usar `yarn` (`yarn add`, `yarn install`), nunca `npm`.
+
+## Decisão: frontend containerizado em modo dev
+
+O serviço `frontend` no `docker-compose.yml` roda `yarn dev --host` dentro do container, servindo a aplicação via Vite dev server, não um build de produção (`vite build` + servidor estático). Essa escolha prioriza simplicidade e é adequada ao escopo do MVP: um único `docker compose up --build` sobe os três serviços (Postgres, backend e frontend) prontos pra avaliação, sem precisar de um segundo Dockerfile ou estágio de build separado só pra servir arquivos estáticos. A flag `--host` é necessária pro Vite aceitar conexões vindas de fora do container (por padrão ele só escuta em `localhost` dentro do próprio container).
+
+Uma nuance importante é a variável `VITE_API_BASE_URL`, que precisa apontar para `http://localhost:3000`, a porta do backend mapeada no host, e não para `http://backend:3000`, o hostname interno da rede do Docker Compose. Isso acontece porque as chamadas à API partem do navegador do usuário, que roda fora da rede interna do Compose, então o hostname `backend` (resolvido só entre containers) não é alcançável a partir do browser. Essa variável é definida no `.env` da raiz e repassada ao serviço `frontend`, seguindo o mesmo padrão já usado para `PORT` e `FRED_API_KEY` no serviço `backend`.
+
+O serviço `frontend` também monta `./frontend:/app` como bind mount, com `/app/node_modules` como volume anônimo separado por cima (pra não deixar o `node_modules` do host, se existir, sobrescrever o que foi instalado dentro da imagem). Isso permite que edições feitas localmente em `frontend/` sejam vistas pelo Vite dev server rodando no container e disparem hot reload, sem precisar de rebuild da imagem a cada mudança. Rebuild só é necessário quando `package.json` ou `yarn.lock` mudam (nova dependência).
+
 ## Pontos em aberto
 
 Não há pendências de decisão no momento. Se surgir alguma durante a implementação, este documento será atualizado.

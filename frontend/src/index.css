@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #ea6a12;
+  --color-primary-hover: #ff7a1a;
+  --color-primary-light: #fff1e6;
+  --color-primary-light-alt: #ffe0c2;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+body {
+  @apply font-sans;
+}

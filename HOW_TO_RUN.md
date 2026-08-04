@@ -9,7 +9,7 @@
 
 O projeto usa **dois arquivos `.env` distintos**, com propósitos diferentes:
 
-- **`.env` na raiz do repositório**: lido automaticamente pelo Docker Compose. Define `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PORT` e `FRED_API_KEY`, que são repassados ao container do backend.
+- **`.env` na raiz do repositório**: lido automaticamente pelo Docker Compose. Define `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PORT` e `FRED_API_KEY`, repassados ao container do backend, e `VITE_API_BASE_URL`, repassada ao container do frontend. Note que `VITE_API_BASE_URL` aponta para `http://localhost:3000` (a porta do backend mapeada no host), não para `http://backend:3000` (hostname interno do Compose), porque as chamadas à API partem do navegador do usuário, fora da rede interna do Docker.
 - **`backend/.env`**: usado quando o backend roda fora do Docker (ex.: `npm run dev`, ou comandos do Prisma CLI localmente). Tem as mesmas variáveis, mas com `DATABASE_URL` já resolvido para `localhost` em vez do hostname `postgres` do Docker.
 
 Antes de subir o projeto, copie o `.env.example` para `.env` em **ambos os lugares**:
@@ -29,7 +29,9 @@ Na raiz do repositório:
 docker compose up --build
 ```
 
-Isso sobe o Postgres e o backend.
+Isso sobe os três serviços: Postgres, backend e frontend. O frontend fica acessível em [http://localhost:5173](http://localhost:5173).
+
+O frontend roda em modo de desenvolvimento dentro do container (`yarn dev --host`), não como build de produção, o que é suficiente pro escopo do MVP e evita um segundo estágio de build só pra servir arquivos estáticos.
 
 **Importante:** hoje as migrations do Prisma **não** rodam automaticamente ao subir o container (o `CMD` do `Dockerfile` só executa `npm start`, sem nenhum passo de migration). Depois que os containers estiverem de pé, rode manualmente, em outro terminal:
 
@@ -44,6 +46,7 @@ O primeiro comando aplica as migrations (cria as tabelas). O segundo popula o ca
 
 - Health check: [http://localhost:3000/health](http://localhost:3000/health) deve responder `{ "status": "ok" }`.
 - Documentação interativa (Swagger UI): [http://localhost:3000/docs](http://localhost:3000/docs).
+- Frontend: [http://localhost:5173](http://localhost:5173) deve carregar a aplicação web.
 
 ## 5. Rodando os testes
 
