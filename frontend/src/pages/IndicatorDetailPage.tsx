@@ -210,8 +210,9 @@ function IndicatorDetailView({ code }: { code: string }) {
         O histórico exibido acompanha o intervalo de comparação selecionado (
         {formatLookbackLabel(indicator.type, selectedLookback)}), com uma margem de contexto
         antes do ponto de referência.
-        {indicator.type === 'macro' &&
-          ' Indicadores macroeconômicos não têm publicação diária: o valor exibido em cada data é o último dado conhecido divulgado pela fonte (BCB ou FRED), não uma interpolação.'}
+        {indicator.type === 'fx'
+          ? ' A cotação PTAX só é publicada em dias úteis: não há dado em fins de semana e feriados, e o valor mais recente pode estar desatualizado até a próxima sincronização.'
+          : ' Indicadores macroeconômicos não têm publicação diária: o valor exibido em cada data é o último dado conhecido divulgado pela fonte (BCB ou FRED), não uma interpolação.'}
       </p>
 
       <div className="mt-10">
