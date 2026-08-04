@@ -198,3 +198,78 @@ indicatorsRouter.post("/indicators/:code/refresh", async (req, res) => {
   const updated = await indicatorRepository.findByCode(code);
   res.status(200).json(toIndicatorSummary(updated ?? indicator));
 });
+
+/**
+ * @openapi
+ * /indicators/{code}/favorite:
+ *   patch:
+ *     summary: Mark or unmark an indicator as favorite
+ *     description: >
+ *       Sets whether this indicator belongs to "My indicators". Single-user
+ *       MVP: this is a plain flag on the indicator, not a user-indicator
+ *       relation (see PLANNING.md).
+ *     parameters:
+ *       - in: path
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: usd_brl
+ *         description: Indicator code (usd_brl, selic, fed_funds_rate).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - isFavorite
+ *             properties:
+ *               isFavorite:
+ *                 type: boolean
+ *           example:
+ *             isFavorite: true
+ *     responses:
+ *       200:
+ *         description: Updated indicator.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/IndicatorSummary'
+ *       400:
+ *         description: The request body is missing isFavorite or it isn't a boolean.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: '"isFavorite" must be a boolean'
+ *       404:
+ *         description: No indicator exists with the given code.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorMessage'
+ *             example:
+ *               message: 'Indicator "unknown" not found'
+ */
+indicatorsRouter.patch("/indicators/:code/favorite", async (req, res) => {
+  const { code } = req.params;
+  const { isFavorite } = req.body ?? {};
+
+  if (typeof isFavorite !== "boolean") {
+    res.status(400).json({ message: '"isFavorite" must be a boolean' });
+    return;
+  }
+
+  const indicator = await indicatorRepository.findByCode(code);
+
+  if (!indicator) {
+    res.status(404).json({ message: `Indicator "${code}" not found` });
+    return;
+  }
+
+  await indicatorRepository.setFavorite(indicator.id, isFavorite);
+  const updated = await indicatorRepository.findByCode(code);
+  res.status(200).json(toIndicatorSummary(updated ?? indicator));
+});

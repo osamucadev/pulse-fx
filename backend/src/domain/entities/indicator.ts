@@ -10,15 +10,35 @@ export type IndicatorSummary = Pick<
   | "source"
   | "type"
   | "description"
+  | "isFavorite"
   | "createdAt"
   | "updatedAt"
 >;
 
 export function toIndicatorSummary(indicator: Indicator): IndicatorSummary {
-  const { id, code, name, source, type, description, createdAt, updatedAt } =
-    indicator;
+  const {
+    id,
+    code,
+    name,
+    source,
+    type,
+    description,
+    isFavorite,
+    createdAt,
+    updatedAt,
+  } = indicator;
 
-  return { id, code, name, source, type, description, createdAt, updatedAt };
+  return {
+    id,
+    code,
+    name,
+    source,
+    type,
+    description,
+    isFavorite,
+    createdAt,
+    updatedAt,
+  };
 }
 
 export interface IndicatorDetail extends IndicatorSummary {

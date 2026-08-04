@@ -4,4 +4,5 @@ export interface IndicatorRepository {
   findAll(): Promise<Indicator[]>;
   findByCode(code: string): Promise<Indicator | null>;
   updateLastSyncedAt(indicatorId: string, syncedAt: Date): Promise<void>;
+  setFavorite(indicatorId: string, isFavorite: boolean): Promise<void>;
 }

@@ -24,6 +24,7 @@ model Indicator {
   lastSyncedAt           DateTime? @map("last_synced_at")
   syncTtlMinutes         Int       @map("sync_ttl_minutes")
   refreshCooldownMinutes Int       @map("refresh_cooldown_minutes")
+  isFavorite             Boolean   @default(false) @map("is_favorite")
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
 

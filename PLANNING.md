@@ -72,6 +72,14 @@ Dois motivos levaram a essa escolha. Primeiro, a cotação de venda é a que apa
 
 A cotação de compra (`buyRate`) continua disponível no retorno de `fetchUsdBrlRates` (não foi descartada do client), caso um dia faça sentido expor as duas cotações no produto. Nessa versão do MVP, porém, só a cotação de venda é persistida.
 
+## Decisão: favoritos como campo booleano no indicador
+
+"Meus indicadores" (favoritos) foi implementado como um campo `isFavorite` direto na tabela `indicators`, não como uma tabela de relação entre usuário e indicador.
+
+Essa escolha só faz sentido porque o MVP é single-user, sem autenticação (fora de escopo, conforme o briefing). Não existe "de quem" é o favorito, existe um único usuário implícito usando o sistema. Criar uma tabela de relação usuário-indicador agora seria engenharia especulativa pra um conceito de usuário que ainda não existe no sistema.
+
+Se autenticação for adicionada no futuro, esse campo precisaria ser repensado como uma relação (ex: tabela `user_favorite_indicators`, com chave composta usuário + indicador), já que múltiplos usuários teriam suas próprias listas de favoritos.
+
 ## Pontos em aberto
 
 Ainda falta decidir qual indicador específico do FRED será usado, e os detalhes finos de nomenclatura das rotas da API. Esses pontos serão fechados durante a implementação e, se necessário, este documento será atualizado.

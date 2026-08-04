@@ -17,4 +17,11 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
       data: { lastSyncedAt: syncedAt },
     });
   }
+
+  async setFavorite(indicatorId: string, isFavorite: boolean): Promise<void> {
+    await prisma.indicator.update({
+      where: { id: indicatorId },
+      data: { isFavorite },
+    });
+  }
 }

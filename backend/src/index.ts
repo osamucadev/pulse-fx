@@ -6,6 +6,7 @@ import { indicatorsRouter } from "./routes/indicators.route.js";
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
+app.use(express.json());
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 /**
