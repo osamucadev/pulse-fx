@@ -15,6 +15,19 @@ export interface Indicator {
   updatedAt: string
 }
 
+export type IndicatorSummary = Pick<
+  Indicator,
+  | 'id'
+  | 'code'
+  | 'name'
+  | 'source'
+  | 'type'
+  | 'description'
+  | 'isFavorite'
+  | 'createdAt'
+  | 'updatedAt'
+>
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export async function fetchIndicators(): Promise<Indicator[]> {
@@ -24,7 +37,14 @@ export async function fetchIndicators(): Promise<Indicator[]> {
     throw new Error(`Failed to fetch indicators: ${response.status}`)
   }
 
-  return response.json()
+  const indicators: Indicator[] = await response.json()
+
+  // A API não garante ordenação (sem ORDER BY), e um UPDATE (ex.: favoritar)
+  // pode mudar a ordem física das linhas no Postgres. Ordenar por createdAt,
+  // que nunca muda, mantém a lista estável entre requisições.
+  return [...indicators].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  )
 }
 
 export type SyncResult =
@@ -57,4 +77,21 @@ export async function syncIndicator(code: string): Promise<SyncResult> {
       message: error instanceof Error ? error.message : `Failed to sync indicator "${code}"`,
     }
   }
+}
+
+export async function toggleFavorite(
+  code: string,
+  isFavorite: boolean,
+): Promise<IndicatorSummary> {
+  const response = await fetch(`${API_BASE_URL}/indicators/${code}/favorite`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ isFavorite }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to update favorite for indicator "${code}": ${response.status}`)
+  }
+
+  return response.json()
 }
