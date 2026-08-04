@@ -52,6 +52,10 @@ Séries macroeconômicas (indicadores `selic` e `fed_funds_rate`, tipo `macro`):
 
 Nota de evolução futura: esses intervalos (7 dias úteis pra FX, 1 mês pra macro) são fixos nessa versão do MVP, definidos por tipo de indicador. Uma evolução natural seria deixar o usuário escolher o intervalo de comparação pelo frontend, tornando esse N configurável por indicador em vez de fixo por tipo.
 
+### Janela de histórico retornada por `GET /indicators/:code`
+
+O campo `observations` da resposta de detalhe do indicador retorna os últimos 90 dias corridos de histórico, o mesmo intervalo já usado para buscar dado novo na sincronização (`SYNC_RANGE_DAYS`). A decisão foi usar a mesma janela pros dois tipos de indicador (`fx` e `macro`), em vez de janelas diferentes por tipo, porque 90 dias já é folgado o bastante pras duas regras de variação: cobre com sobra tanto os 7 dias úteis usados por `fx` quanto o 1 mês usado por `macro`, então uma única janela é suficiente pra alimentar corretamente o cálculo de variação e ainda entregar dado o bastante pro gráfico de evolução da tela de detalhe, sem precisar de uma regra separada por tipo nesse ponto específico.
+
 ## Modelagem de dados
 
 Foram desenhadas duas tabelas.

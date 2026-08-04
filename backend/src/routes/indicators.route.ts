@@ -3,11 +3,13 @@ import type { Indicator } from "../generated/prisma/client.js";
 import {
   toIndicatorDetail,
   toIndicatorSummary,
+  toIndicatorWithVariation,
 } from "../domain/entities/indicator.js";
 import type { IndicatorObservationRepository } from "../domain/repositories/indicator-observation.repository.js";
 import type { IndicatorRepository } from "../domain/repositories/indicator.repository.js";
 import type { SyncRange } from "../domain/services/indicator-sync.service.js";
 import { shouldSync } from "../domain/services/sync-policy.js";
+import type { VariationObservation } from "../domain/services/variation.js";
 
 export interface IndicatorsRouterDeps {
   indicatorRepository: IndicatorRepository;
@@ -15,6 +17,9 @@ export interface IndicatorsRouterDeps {
   syncIndicator: (indicator: Indicator, range: SyncRange) => Promise<void>;
 }
 
+// Also the window of history returned by GET /indicators/:code (see
+// PLANNING.md): 90 days comfortably covers both the 7-business-day lookback
+// used for fx variation and the 1-calendar-month lookback used for macro.
 const SYNC_RANGE_DAYS = 90;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const MINUTE_IN_MS = 60 * 1000;
@@ -26,6 +31,16 @@ function last90DaysRange(now: Date): SyncRange {
   };
 }
 
+function withinHistoryWindow(
+  observations: VariationObservation[],
+  now: Date,
+): VariationObservation[] {
+  const cutoff = now.getTime() - SYNC_RANGE_DAYS * DAY_IN_MS;
+  return observations.filter(
+    (observation) => observation.referenceDate.getTime() >= cutoff,
+  );
+}
+
 export function createIndicatorsRouter(deps: IndicatorsRouterDeps): Router {
   const { indicatorRepository, observationRepository, syncIndicator } = deps;
   const indicatorsRouter = Router();
@@ -35,20 +50,31 @@ export function createIndicatorsRouter(deps: IndicatorsRouterDeps): Router {
    * /indicators:
    *   get:
    *     summary: List all indicators
-   *     description: Returns the indicator catalog (USD/BRL, Selic, Fed Funds Rate). Reads only what is already persisted, never triggers an external sync.
+   *     description: >
+   *       Returns the indicator catalog (USD/BRL, Selic, Fed Funds Rate)
+   *       with each one's latest value and percentage variation. Reads
+   *       only what is already persisted, never triggers an external sync.
    *     responses:
    *       200:
-   *         description: List of indicators.
+   *         description: List of indicators, including latest value and variation.
    *         content:
    *           application/json:
    *             schema:
    *               type: array
    *               items:
-   *                 $ref: '#/components/schemas/IndicatorSummary'
+   *                 $ref: '#/components/schemas/IndicatorWithVariation'
    */
   indicatorsRouter.get("/indicators", async (_req, res) => {
     const indicators = await indicatorRepository.findAll();
-    res.status(200).json(indicators.map(toIndicatorSummary));
+    const summaries = await Promise.all(
+      indicators.map(async (indicator) => {
+        const observations = await observationRepository.findByIndicatorId(
+          indicator.id,
+        );
+        return toIndicatorWithVariation(indicator, observations);
+      }),
+    );
+    res.status(200).json(summaries);
   });
 
   /**
@@ -57,9 +83,10 @@ export function createIndicatorsRouter(deps: IndicatorsRouterDeps): Router {
    *   get:
    *     summary: Get a single indicator by code
    *     description: >
-   *       Returns one indicator with its latest value and percentage
-   *       variation. Before responding, checks whether its data is older
-   *       than syncTtlMinutes; if so, fetches fresh data from the external
+   *       Returns one indicator with its latest value, percentage
+   *       variation, and up to 90 days of observation history. Before
+   *       responding, checks whether its data is older than
+   *       syncTtlMinutes; if so, fetches fresh data from the external
    *       source and persists it first (passive TTL sync).
    *     parameters:
    *       - in: path
@@ -71,7 +98,7 @@ export function createIndicatorsRouter(deps: IndicatorsRouterDeps): Router {
    *         description: Indicator code (usd_brl, selic, fed_funds_rate).
    *     responses:
    *       200:
-   *         description: The indicator, including its latest value and variation.
+   *         description: The indicator, including its latest value, variation, and observation history.
    *         content:
    *           application/json:
    *             schema:
@@ -110,9 +137,10 @@ export function createIndicatorsRouter(deps: IndicatorsRouterDeps): Router {
     const current = needsSync
       ? ((await indicatorRepository.findByCode(code)) ?? indicator)
       : indicator;
-    const observations = await observationRepository.findByIndicatorId(
+    const allObservations = await observationRepository.findByIndicatorId(
       current.id,
     );
+    const observations = withinHistoryWindow(allObservations, now);
 
     res.status(200).json(toIndicatorDetail(current, observations));
   });

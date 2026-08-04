@@ -37,7 +37,7 @@ export const openApiSpec = swaggerJsdoc({
             updatedAt: "2026-08-04T00:11:40.930Z",
           },
         },
-        IndicatorDetail: {
+        IndicatorWithVariation: {
           allOf: [
             { $ref: "#/components/schemas/IndicatorSummary" },
             {
@@ -76,6 +76,46 @@ export const openApiSpec = swaggerJsdoc({
             lastValue: 5.4321,
             lastReferenceDate: "2026-08-03",
             variationPercent: 1.85,
+          },
+        },
+        IndicatorDetail: {
+          allOf: [
+            { $ref: "#/components/schemas/IndicatorWithVariation" },
+            {
+              type: "object",
+              properties: {
+                observations: {
+                  type: "array",
+                  description: "Observation history for the last 90 days (same window used for external sync), ordered by referenceDate ascending.",
+                  items: {
+                    type: "object",
+                    properties: {
+                      referenceDate: { type: "string", format: "date" },
+                      value: { type: "number" },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+          example: {
+            id: "9168688f-ad26-4751-9321-856eb060b574",
+            code: "usd_brl",
+            name: "Dólar Americano (PTAX)",
+            source: "bcb",
+            type: "fx",
+            description:
+              "Cotação de fechamento do dólar americano frente ao real, calculada pelo Banco Central através da pesquisa PTAX.",
+            isFavorite: false,
+            createdAt: "2026-08-03T23:23:29.102Z",
+            updatedAt: "2026-08-04T00:11:40.930Z",
+            lastValue: 5.4321,
+            lastReferenceDate: "2026-08-03",
+            variationPercent: 1.85,
+            observations: [
+              { referenceDate: "2026-07-31", value: 5.42 },
+              { referenceDate: "2026-08-01", value: 5.4321 },
+            ],
           },
         },
         ErrorMessage: {

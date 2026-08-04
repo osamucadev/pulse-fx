@@ -41,16 +41,16 @@ export function toIndicatorSummary(indicator: Indicator): IndicatorSummary {
   };
 }
 
-export interface IndicatorDetail extends IndicatorSummary {
+export interface IndicatorWithVariation extends IndicatorSummary {
   lastValue: number | null;
   lastReferenceDate: Date | null;
   variationPercent: number | null;
 }
 
-export function toIndicatorDetail(
+export function toIndicatorWithVariation(
   indicator: Indicator,
   observations: VariationObservation[],
-): IndicatorDetail {
+): IndicatorWithVariation {
   const summary = toIndicatorSummary(indicator);
   const last = observations[observations.length - 1] ?? null;
   const variation = calculateVariation(
@@ -63,5 +63,19 @@ export function toIndicatorDetail(
     lastValue: last ? last.value : null,
     lastReferenceDate: last ? last.referenceDate : null,
     variationPercent: variation ? variation.variationPercent : null,
+  };
+}
+
+export interface IndicatorDetail extends IndicatorWithVariation {
+  observations: VariationObservation[];
+}
+
+export function toIndicatorDetail(
+  indicator: Indicator,
+  observations: VariationObservation[],
+): IndicatorDetail {
+  return {
+    ...toIndicatorWithVariation(indicator, observations),
+    observations,
   };
 }
