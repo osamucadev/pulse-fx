@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { toggleFavorite, type Indicator } from '../api/client'
 import { formatLastValue, formatReferenceDate } from '../utils/formatIndicator'
+import { IndicatorTypeIcon } from './IndicatorTypeIcon'
 import { VariationBadge } from './VariationBadge'
 
 interface IndicatorCardProps {
@@ -63,7 +64,10 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
       >
         <Star size={20} fill={indicator.isFavorite ? 'currentColor' : 'none'} />
       </button>
-      <h2 className="pr-8 text-sm font-medium text-gray-500">{indicator.name}</h2>
+      <h2 className="flex items-center gap-1.5 pr-8 text-sm font-medium text-gray-500">
+        <IndicatorTypeIcon type={indicator.type} />
+        {indicator.name}
+      </h2>
       <p className="mt-1 text-2xl font-semibold text-gray-900">
         {formatLastValue(indicator.type, indicator.lastValue)}
       </p>

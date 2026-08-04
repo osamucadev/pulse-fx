@@ -2,7 +2,9 @@ import { ArrowLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { IndicatorNotFoundError } from '../api/client'
 import { IndicatorChart } from '../components/IndicatorChart'
+import { IndicatorDetailSkeleton } from '../components/IndicatorDetailSkeleton'
 import { IndicatorSuggestions } from '../components/IndicatorSuggestions'
+import { IndicatorTypeIcon } from '../components/IndicatorTypeIcon'
 import { VariationBadge } from '../components/VariationBadge'
 import { useIndicatorDetail } from '../hooks/useIndicatorDetail'
 import { formatLastValue, formatReferenceDate } from '../utils/formatIndicator'
@@ -24,9 +26,11 @@ export function IndicatorDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8">
+      <div>
         {backLink}
-        <p className="mt-4 text-center text-gray-500">Carregando indicador...</p>
+        <div className="mt-4">
+          <IndicatorDetailSkeleton />
+        </div>
       </div>
     )
   }
@@ -34,7 +38,7 @@ export function IndicatorDetailPage() {
   if (error) {
     if (error instanceof IndicatorNotFoundError) {
       return (
-        <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 p-8 text-center">
+        <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 text-center">
           <div>
             <h1 className="text-xl font-semibold text-gray-900">Indicador não encontrado</h1>
             <p className="mt-2 text-sm text-gray-500">
@@ -64,7 +68,7 @@ export function IndicatorDetailPage() {
     }
 
     return (
-      <div className="p-8">
+      <div>
         {backLink}
         <p className="mt-4 text-center text-danger">
           Não foi possível carregar o indicador. Tente novamente mais tarde.
@@ -78,12 +82,15 @@ export function IndicatorDetailPage() {
   }
 
   return (
-    <div className="p-8">
+    <div>
       {backLink}
 
       <div className="mt-4">
         <p className="text-sm font-medium text-gray-400">{indicator.code}</p>
-        <h1 className="mt-1 text-2xl font-semibold text-gray-900">{indicator.name}</h1>
+        <h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold text-gray-900">
+          <IndicatorTypeIcon type={indicator.type} size={20} />
+          {indicator.name}
+        </h1>
         <p className="mt-2 max-w-2xl text-sm text-gray-500">{indicator.description}</p>
       </div>
 

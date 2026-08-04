@@ -12,7 +12,7 @@ const decisions = [
 
 export function AboutPage() {
   return (
-    <div className="mx-auto max-w-2xl p-8">
+    <div className="max-w-2xl">
       <Link
         to="/"
         viewTransition

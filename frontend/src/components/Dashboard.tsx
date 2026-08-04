@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { syncIndicator } from '../api/client'
 import { useIndicators } from '../hooks/useIndicators'
+import { CardSkeleton } from './CardSkeleton'
 import { IndicatorCard } from './IndicatorCard'
 import { SyncBanner } from './SyncBanner'
 
@@ -9,12 +10,18 @@ export function Dashboard() {
   const queryClient = useQueryClient()
 
   if (isLoading) {
-    return <p className="p-8 text-center text-gray-500">Carregando indicadores...</p>
+    return (
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    )
   }
 
   if (isError) {
     return (
-      <p className="p-8 text-center text-danger">
+      <p className="text-center text-danger">
         Não foi possível carregar os indicadores. Tente novamente mais tarde.
       </p>
     )
@@ -41,7 +48,7 @@ export function Dashboard() {
   return (
     <>
       <SyncBanner hasMissingData={hasMissingData} onSync={handleSync} />
-      <div className="animate-fade-in grid grid-cols-1 gap-4 p-8 md:grid-cols-3">
+      <div className="animate-fade-in grid grid-cols-1 gap-4 md:grid-cols-3">
         {indicators?.map((indicator) => (
           <IndicatorCard key={indicator.id} indicator={indicator} />
         ))}
