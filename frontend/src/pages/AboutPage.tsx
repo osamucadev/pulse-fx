@@ -6,7 +6,10 @@ const decisions = [
   'Indicadores: USD/BRL (BCB, cotação PTAX de venda), Selic (BCB SGS) e Fed Funds Rate (FRED), cobrindo as duas fontes obrigatórias e permitindo comparar juros Brasil x EUA lado a lado.',
   'Sincronização: TTL passivo (o dado atualiza sozinho quando expira) combinado com cooldown de refresh manual, evitando chamadas descontroladas às fontes externas.',
   'Variação percentual: compara com 7 dias úteis atrás para câmbio (fx) e 1 mês de calendário atrás para indicadores macro, sempre usando o último dado conhecido, sem interpolação.',
+  'Intervalo de comparação configurável: a tela de detalhe permite trocar o período da variação (7, 15 ou 30 dias úteis para câmbio; 1, 3 ou 6 meses para indicadores macro), com o histórico do gráfico se ajustando ao intervalo escolhido.',
   'Favoritos: campo isFavorite simples na tabela de indicadores, não uma relação usuário-indicador, porque o MVP é single-user sem autenticação.',
+  'Reset de demonstração: o endpoint POST /admin/reset apaga os dados sincronizados de todos os indicadores para recomeçar do zero, sem autenticação pela mesma razão dos favoritos: o MVP é single-user.',
+  'Tour guiado: um passo a passo interativo apresenta o produto na primeira visita e pode ser revisitado a qualquer momento pelo botão no rodapé.',
   'Dívidas técnicas conhecidas: gerenciador de pacotes inconsistente entre as pastas (Yarn no frontend, npm no backend); falta de lint configurado no backend; frontend roda em modo dev dentro do Docker, não como build de produção.',
 ]
 
