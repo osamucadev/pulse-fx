@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import { syncIndicator } from "./domain/services/indicator-sync.service.js";
@@ -8,6 +9,7 @@ import { createIndicatorsRouter } from "./routes/indicators.route.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 
 const indicatorsRouter = createIndicatorsRouter({
   indicatorRepository: new PrismaIndicatorRepository(),
@@ -15,6 +17,7 @@ const indicatorsRouter = createIndicatorsRouter({
   syncIndicator,
 });
 
+app.use(cors({ origin: frontendOrigin }));
 app.use(express.json());
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 

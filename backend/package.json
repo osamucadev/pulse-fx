@@ -14,11 +14,13 @@
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^22.10.5",
     "@types/supertest": "^7.2.1",
