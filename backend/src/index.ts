@@ -1,10 +1,19 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
+import { syncIndicator } from "./domain/services/indicator-sync.service.js";
 import { openApiSpec } from "./infra/openapi/spec.js";
-import { indicatorsRouter } from "./routes/indicators.route.js";
+import { PrismaIndicatorObservationRepository } from "./infra/prisma/indicator-observation.repository.js";
+import { PrismaIndicatorRepository } from "./infra/prisma/indicator.repository.js";
+import { createIndicatorsRouter } from "./routes/indicators.route.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+
+const indicatorsRouter = createIndicatorsRouter({
+  indicatorRepository: new PrismaIndicatorRepository(),
+  observationRepository: new PrismaIndicatorObservationRepository(),
+  syncIndicator,
+});
 
 app.use(express.json());
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
