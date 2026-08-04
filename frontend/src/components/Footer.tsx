@@ -39,14 +39,14 @@ export function Footer() {
   }
 
   return (
-    <footer data-tour="app-footer" className="w-full border-t border-gray-100 px-8 py-4">
+    <footer className="w-full border-t border-gray-100 px-8 py-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-gray-400">
+        <p data-tour="footer-disclaimer" className="text-xs text-gray-400">
           Este projeto tem finalidade educacional e de demonstração técnica. As informações
           exibidas não constituem recomendação de investimento.
         </p>
 
-        <div className="flex items-center gap-3">
+        <div data-tour="footer-actions" className="flex items-center gap-3">
           {feedback && <span className="text-xs text-gray-500">{feedback}</span>}
           <Link
             to="/about"

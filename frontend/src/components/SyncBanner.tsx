@@ -29,7 +29,10 @@ export function SyncBanner({ hasMissingData, onSync }: SyncBannerProps) {
         hasMissingData ? 'mb-4 max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}
     >
-      <div className="flex flex-col gap-3 rounded-lg border border-primary-light-alt bg-primary-light p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        data-tour="sync-banner"
+        className="flex flex-col gap-3 rounded-lg border border-primary-light-alt bg-primary-light p-4 sm:flex-row sm:items-center sm:justify-between"
+      >
         <p className="text-sm text-gray-700">
           Alguns indicadores ainda não foram sincronizados com as fontes de dados. Isso é
           normal na primeira execução do projeto.

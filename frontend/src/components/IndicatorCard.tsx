@@ -3,7 +3,7 @@ import { Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { toggleFavorite, type Indicator } from '../api/client'
-import { TOUR_INDICATOR_CODE } from '../tour/steps'
+import { SECOND_TOUR_INDICATOR_CODE, TOUR_INDICATOR_CODE } from '../tour/steps'
 import { formatLastValue, formatReferenceDate } from '../utils/formatIndicator'
 import { IndicatorTypeIcon } from './IndicatorTypeIcon'
 import { VariationBadge } from './VariationBadge'
@@ -14,9 +14,10 @@ interface IndicatorCardProps {
 
 export function IndicatorCard({ indicator }: IndicatorCardProps) {
   const queryClient = useQueryClient()
-  // The guided tour needs a single, predictable card to point at; the
-  // rest of the cards don't get these attributes.
+  // The guided tour needs predictable cards to point at; the rest of the
+  // cards don't get these attributes.
   const isTourCard = indicator.code === TOUR_INDICATOR_CODE
+  const isSecondTourCard = indicator.code === SECOND_TOUR_INDICATOR_CODE
 
   const favoriteMutation = useMutation({
     mutationFn: (nextIsFavorite: boolean) => toggleFavorite(indicator.code, nextIsFavorite),
@@ -55,6 +56,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
 
   return (
     <div
+      data-tour={isSecondTourCard ? 'second-indicator-tip' : undefined}
       className={`relative rounded-lg border p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md ${
         indicator.isFavorite ? 'border-primary' : 'border-gray-200'
       }`}

@@ -1,7 +1,8 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ACTIONS, EVENTS, Joyride, STATUS, type EventData } from 'react-joyride'
-import { tourSteps } from './steps'
+import { useIndicators } from '../hooks/useIndicators'
+import { buildTourSteps, type TourStep } from './steps'
 import { useTour } from './useTour'
 
 const TOUR_SEEN_KEY = 'pulse-fx-tour-seen'
@@ -10,16 +11,39 @@ export function TourGuide() {
   const { run, stepIndex, setStepIndex, startTour, stopTour } = useTour()
   const navigate = useNavigate()
   const location = useLocation()
+  const { data: indicators, isLoading } = useIndicators()
 
-  // Starts the tour automatically on the very first visit only.
+  // The step list is frozen for the duration of a run, computed from
+  // whatever indicator data is available right when it starts (see the
+  // effect below), so the step count and indices stay stable while the
+  // tour is in progress even if the underlying data changes meanwhile.
+  const [steps, setSteps] = useState<TourStep[]>(() => buildTourSteps([]))
+  const wasRunningRef = useRef(false)
+
+  // Starts the tour automatically on the very first visit only. Waits
+  // for indicator data to finish loading first, so the conditional steps
+  // (sync banner, second-indicator tip) are filtered correctly from the
+  // very first run instead of defaulting to an empty list.
   useEffect(() => {
+    if (isLoading) {
+      return
+    }
+
     if (!localStorage.getItem(TOUR_SEEN_KEY)) {
       localStorage.setItem(TOUR_SEEN_KEY, 'true')
       startTour()
     }
-  }, [startTour])
+  }, [isLoading, startTour])
 
-  const currentStep = tourSteps[stepIndex]
+  useEffect(() => {
+    if (run && !wasRunningRef.current) {
+      setSteps(buildTourSteps(indicators ?? []))
+    }
+
+    wasRunningRef.current = run
+  }, [run, indicators])
+
+  const currentStep = steps[stepIndex]
   const isOnStepRoute = !currentStep || currentStep.route === location.pathname
 
   // If the active step lives on a different route than the one we're on
@@ -29,7 +53,7 @@ export function TourGuide() {
   // prop below), so it never tries to position a spotlight before React
   // Router has rendered the right page. Once there, Joyride's own
   // `targetWaitTimeout` covers the remaining gap while the page's data
-  // is still loading (see the 6th step in steps.ts, right after this
+  // is still loading (see the chart step in steps.ts, right after this
   // kind of navigation).
   useEffect(() => {
     if (run && currentStep && !isOnStepRoute) {
@@ -41,7 +65,11 @@ export function TourGuide() {
     (data: EventData) => {
       const { status, type, index, action } = data
 
-      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      // Closing via the X button (or the overlay, both fire ACTIONS.CLOSE)
+      // must stop the tour just like finishing or skipping it, so the
+      // overlay disappears together with the tooltip instead of the
+      // Joyride internals being left in a paused, half-visible state.
+      if (status === STATUS.FINISHED || status === STATUS.SKIPPED || action === ACTIONS.CLOSE) {
         stopTour()
         return
       }
@@ -54,7 +82,7 @@ export function TourGuide() {
       if (type === EVENTS.STEP_AFTER && (action === ACTIONS.NEXT || action === ACTIONS.PREV)) {
         const nextIndex = index + (action === ACTIONS.NEXT ? 1 : -1)
 
-        if (!tourSteps[nextIndex]) {
+        if (!steps[nextIndex]) {
           stopTour()
           return
         }
@@ -62,14 +90,14 @@ export function TourGuide() {
         setStepIndex(nextIndex)
       }
     },
-    [setStepIndex, stopTour],
+    [steps, setStepIndex, stopTour],
   )
 
   return (
     <Joyride
       run={run && isOnStepRoute}
       stepIndex={stepIndex}
-      steps={tourSteps}
+      steps={steps}
       continuous
       onEvent={handleEvent}
       locale={{
@@ -77,6 +105,7 @@ export function TourGuide() {
         close: 'Fechar',
         last: 'Concluir',
         next: 'Próximo',
+        nextWithProgress: 'Próximo ({current} de {total})',
         skip: 'Pular',
       }}
       options={{
