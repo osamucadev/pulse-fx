@@ -42,6 +42,16 @@ Um refresh manual, disparado pelo usuário no front, com um cooldown mínimo (po
 
 Essa combinação evita dois problemas ao mesmo tempo: um TTL fixo sozinho frustraria quem quer ver um dado mais recente na hora, e permitir forçar atualização sem limite geraria chamadas descontroladas às APIs externas, o que o briefing pede explicitamente pra evitar.
 
+## Regra de variação percentual
+
+A variação percentual de cada indicador compara o valor mais recente com um valor de referência, mas o intervalo usado como referência depende do tipo do indicador, não é um número fixo universal.
+
+Séries de câmbio (indicador `usd_brl`, tipo `fx`): a referência é a observação de 7 dias úteis atrás, não 7 dias corridos. Como só armazenamos dias com pregão (a PTAX não publica em fins de semana e feriados), contar posições no histórico já garante isso automaticamente, sem precisar filtrar calendário à parte.
+
+Séries macroeconômicas (indicadores `selic` e `fed_funds_rate`, tipo `macro`): a referência é o valor de 1 mês de calendário atrás. Como Selic e Fed Funds Rate não mudam todo dia (a Selic fica constante entre reuniões do Copom, por exemplo), a regra usa o último dado conhecido igual ou anterior a essa data, em vez de exigir um valor exatamente naquela data ou interpolar entre pontos, seguindo a mesma lógica de "não inventar dado que a fonte não forneceu" já usada na modelagem de observações.
+
+Nota de evolução futura: esses intervalos (7 dias úteis pra FX, 1 mês pra macro) são fixos nessa versão do MVP, definidos por tipo de indicador. Uma evolução natural seria deixar o usuário escolher o intervalo de comparação pelo frontend, tornando esse N configurável por indicador em vez de fixo por tipo.
+
 ## Modelagem de dados
 
 Foram desenhadas duas tabelas.
