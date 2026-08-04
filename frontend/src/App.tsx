@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'
 import { Footer } from './components/Footer'
+import { AboutPage } from './pages/AboutPage'
 import { IndicatorDetailPage } from './pages/IndicatorDetailPage'
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/indicators/:code" element={<IndicatorDetailPage />} />
+            <Route path="/about" element={<AboutPage />} />
           </Routes>
         </main>
         <Footer />

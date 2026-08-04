@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { RotateCcw } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { resetData } from '../api/client'
 import { ConfirmModal } from './ConfirmModal'
 
@@ -37,6 +37,12 @@ export function Footer() {
 
         <div className="flex items-center gap-3">
           {feedback && <span className="text-xs text-gray-500">{feedback}</span>}
+          <Link
+            to="/about"
+            className="text-xs font-medium text-gray-500 transition-colors hover:text-primary"
+          >
+            Sobre
+          </Link>
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
