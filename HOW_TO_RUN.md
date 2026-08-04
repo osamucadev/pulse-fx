@@ -10,7 +10,7 @@
 O projeto usa **dois arquivos `.env` distintos**, com propósitos diferentes:
 
 - **`.env` na raiz do repositório**: lido automaticamente pelo Docker Compose. Define `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PORT`, `FRED_API_KEY` e `FRONTEND_ORIGIN`, repassados ao container do backend, e `VITE_API_BASE_URL`, repassada ao container do frontend. Note que `VITE_API_BASE_URL` aponta para `http://localhost:3000` (a porta do backend mapeada no host), não para `http://backend:3000` (hostname interno do Compose), porque as chamadas à API partem do navegador do usuário, fora da rede interna do Docker.
-- **`backend/.env`**: usado quando o backend roda fora do Docker (ex.: `npm run dev`, ou comandos do Prisma CLI localmente). Tem as mesmas variáveis, mas com `DATABASE_URL` já resolvido para `localhost` em vez do hostname `postgres` do Docker.
+- **`backend/.env`**: usado quando o backend roda fora do Docker (ex.: `yarn dev`, ou comandos do Prisma CLI localmente). Tem as mesmas variáveis, mas com `DATABASE_URL` já resolvido para `localhost` em vez do hostname `postgres` do Docker.
 
 Antes de subir o projeto, copie o `.env.example` para `.env` em **ambos os lugares**:
 
@@ -33,11 +33,11 @@ Isso sobe os três serviços: Postgres, backend e frontend. O frontend fica aces
 
 O frontend roda em modo de desenvolvimento dentro do container (`yarn dev --host`), não como build de produção, o que é suficiente pro escopo do MVP e evita um segundo estágio de build só pra servir arquivos estáticos.
 
-**Importante:** hoje as migrations do Prisma **não** rodam automaticamente ao subir o container (o `CMD` do `Dockerfile` só executa `npm start`, sem nenhum passo de migration). Depois que os containers estiverem de pé, rode manualmente, em outro terminal:
+**Importante:** hoje as migrations do Prisma **não** rodam automaticamente ao subir o container (o `CMD` do `Dockerfile` só executa `yarn start`, sem nenhum passo de migration). Depois que os containers estiverem de pé, rode manualmente, em outro terminal:
 
 ```bash
-docker compose exec backend npx prisma migrate deploy
-docker compose exec backend npx prisma db seed
+docker compose exec backend yarn prisma migrate deploy
+docker compose exec backend yarn prisma db seed
 ```
 
 O primeiro comando aplica as migrations (cria as tabelas). O segundo popula o catálogo dos três indicadores (`usd_brl`, `selic`, `fed_funds_rate`).
@@ -55,19 +55,19 @@ O primeiro comando aplica as migrations (cria as tabelas). O segundo popula o ca
 Dentro de `backend/`:
 
 ```bash
-npm test
+yarn test
 ```
 
 Parte dos testes (os de persistência, em `*.repository.test.ts`) faz integração real com o Postgres, então precisam:
 
 1. Do Postgres de pé (via `docker compose up -d postgres`, a partir da raiz).
-2. Da variável `DATABASE_URL` disponível no ambiente onde o comando roda, já que `npm test` não carrega arquivos `.env` sozinho.
+2. Da variável `DATABASE_URL` disponível no ambiente onde o comando roda, já que `yarn test` não carrega arquivos `.env` sozinho.
 
 No Linux/Mac, a partir da raiz do repositório:
 
 ```bash
 cd backend
-set -a && source .env && set +a && npm test
+set -a && source .env && set +a && yarn test
 ```
 
 ### Frontend
@@ -87,7 +87,7 @@ docker compose exec frontend yarn test
 Dentro de `backend/`:
 
 ```bash
-npm run lint
+yarn lint
 ```
 
 Roda o ESLint (flat config, `typescript-eslint` recomendado) contra todo o código TypeScript do projeto, exceto o cliente Prisma gerado (`src/generated`). Não precisa do Postgres nem de nenhum serviço rodando.
