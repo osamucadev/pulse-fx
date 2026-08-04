@@ -136,6 +136,32 @@ Esse endpoint existe exclusivamente para fins de demonstração e teste do MVP, 
 
 Assim como a decisão já registrada sobre favoritos, esse endpoint não tem autenticação nem qualquer proteção porque o projeto inteiro é single-user, sem conceito de usuário autenticado (fora de escopo, conforme o briefing). Fica registrado aqui, de forma explícita, que um endpoint como esse, capaz de apagar dados em massa sem confirmação além da do próprio cliente, jamais deveria existir sem controle de acesso adequado (autenticação, autorização, e provavelmente nem deveria estar acessível publicamente) em um sistema real de produção. Ele é aceitável aqui apenas porque o escopo do desafio é um MVP de demonstração, não um produto em produção com dados de usuários reais.
 
+## Decisão: Vitest e Testing Library para testes do frontend
+
+O frontend usa Vitest como test runner, integrado nativamente ao Vite (mesma configuração, mesmo motor de transformação, sem precisar de um segundo bundler só pra rodar testes), junto com Testing Library (`@testing-library/react`) pra renderizar componentes e fazer asserções sobre o DOM em vez de detalhes de implementação. Uma particularidade técnica fica registrada aqui: as versões mais recentes de `jsdom` (26 em diante) e `@testing-library/jest-dom` (7 em diante) exigem Node 22 ou mais recente, mas a imagem Docker do frontend usa `node:20-alpine`, mesma versão já usada no backend, por consistência. Por isso, essas duas dependências foram fixadas em versões específicas compatíveis com Node 20 (`jsdom@26.0.0` e `@testing-library/jest-dom@6.9.1`), em vez de usar a faixa mais recente, evitando o mesmo tipo de incompatibilidade de engine já visto antes neste projeto com dependências desalinhadas.
+
+## Decisão: tour guiado com react-joyride
+
+O Pulse FX tem um tour guiado, implementado com `react-joyride` (versão 3.x, a única major da lib com suporte a React 19), cruzando o Dashboard e a tela de detalhe de um indicador fixo (`usd_brl`) na mesma sequência de passos.
+
+### Modo controlado
+
+O Joyride roda em modo controlado (prop `stepIndex`, em vez de deixar a lib gerenciar seu próprio índice internamente), porque parte dos passos do tour vive em rotas diferentes: o Dashboard, em `/`, e a tela de detalhe, em `/indicators/usd_brl`. Sem modo controlado, a lib não tem como disparar uma navegação de rota real entre um passo e o próximo. O componente `TourGuide` só passa `run={true}` pro Joyride quando a rota atual já bate com a rota do passo ativo; se não bater, ele navega primeiro (via `useNavigate` do react-router) e mantém o Joyride pausado até a página certa estar renderizada. A espera pelo elemento alvo realmente existir no DOM depois da navegação, e do carregamento assíncrono dos dados na tela de detalhe, usa o mecanismo nativo `targetWaitTimeout` do próprio Joyride, sem precisar de polling manual no DOM.
+
+### Passos condicionais e larguras do tour
+
+O tour tem 10 passos fixos e 2 passos condicionais, os dois controlados pela mesma condição: existe algum indicador com `lastValue` null (nunca sincronizado)? Se sim, entra o passo do banner de sincronização, logo depois do grid de cards, explicando o "Sem dados" e o botão "Sincronizar agora"; e entra também o passo final, de volta no Dashboard, apontando pra um segundo card (Selic) e explicando que a sincronização é feita indicador por indicador, não em massa. Se não houver nenhum dado faltando, os dois passos são omitidos.
+
+As duas condições foram unificadas numa só de propósito. Na primeira versão, o passo do banner e o passo final tinham condições independentes (banner: qualquer indicador sem dado; passo final: o Selic especificamente sem dado), o que criava um terceiro caminho possível de 11 passos nos casos em que o Selic já estivesse sincronizado mas outro indicador não. Esse caminho intermediário não agregava nada à experiência, existia só por acidente de como as duas condições foram escritas separadamente, então foram unificadas numa condição só. Com isso, o tour sempre tem exatamente 10 passos (tudo já sincronizado) ou 12 (algo ainda não sincronizado), nunca 11.
+
+A lista de passos é montada uma vez, no momento em que o tour começa a rodar (a transição de `run: false` pra `true`), e fica congelada durante toda a execução, mesmo que o usuário sincronize algum indicador no meio do tour. Isso evita que o número de passos ou os índices mudem embaixo do usuário enquanto ele navega.
+
+### Início automático e revisitar
+
+Na primeira visita à aplicação, o tour começa sozinho, controlado por uma chave no `localStorage` (`pulse-fx-tour-seen`). O início automático espera os dados dos indicadores terminarem de carregar antes de calcular a lista de passos, pra que a filtragem condicional já funcione corretamente desde a primeira execução, sem depender de um segundo carregamento.
+
+O botão "Revisitar tour", no rodapé, permite rodar o tour de novo a qualquer momento, reiniciando do passo 0 e reavaliando as condições com os dados atuais. Por isso a mesma sessão pode ver o tour de 12 passos numa primeira execução, e de 10 passos numa execução seguinte, depois de sincronizar tudo.
+
 ## Pontos em aberto
 
 Não há pendências de decisão no momento. Se surgir alguma durante a implementação, este documento será atualizado.

@@ -136,17 +136,18 @@ const secondIndicatorTipStep: TourStep = {
 }
 
 /**
- * Builds the tour's step list from the current indicator data, dropping
- * steps that don't apply right now: the sync banner step only makes
- * sense if at least one indicator has no data yet, and the closing
- * "second indicator" tip only makes sense if SECOND_TOUR_INDICATOR_CODE
- * specifically still has no data (it's the one the tour points at).
+ * Builds the tour's step list from the current indicator data. Both
+ * conditional steps (the sync banner and the closing "second indicator"
+ * tip) share a single condition, whether any indicator has no data yet:
+ * if nothing is missing there's nothing to explain about syncing, and if
+ * something is missing the closing tip about per-indicator syncing still
+ * applies regardless of which indicator that is. Sharing one condition
+ * instead of two independent ones keeps the tour to exactly two possible
+ * lengths (10 steps when everything is already synced, 12 when
+ * anything isn't), never a partial 11-step path.
  */
 export function buildTourSteps(indicators: Indicator[]): TourStep[] {
   const hasMissingData = indicators.some((indicator) => indicator.lastValue === null)
-  const secondIndicatorHasMissingData = indicators.some(
-    (indicator) => indicator.code === SECOND_TOUR_INDICATOR_CODE && indicator.lastValue === null,
-  )
 
   return [
     welcomeStep,
@@ -160,6 +161,6 @@ export function buildTourSteps(indicators: Indicator[]): TourStep[] {
     detailRefreshStep,
     footerDisclaimerStep,
     footerActionsStep,
-    ...(secondIndicatorHasMissingData ? [secondIndicatorTipStep] : []),
+    ...(hasMissingData ? [secondIndicatorTipStep] : []),
   ]
 }

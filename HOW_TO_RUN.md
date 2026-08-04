@@ -9,7 +9,7 @@
 
 O projeto usa **dois arquivos `.env` distintos**, com propósitos diferentes:
 
-- **`.env` na raiz do repositório**: lido automaticamente pelo Docker Compose. Define `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PORT` e `FRED_API_KEY`, repassados ao container do backend, e `VITE_API_BASE_URL`, repassada ao container do frontend. Note que `VITE_API_BASE_URL` aponta para `http://localhost:3000` (a porta do backend mapeada no host), não para `http://backend:3000` (hostname interno do Compose), porque as chamadas à API partem do navegador do usuário, fora da rede interna do Docker.
+- **`.env` na raiz do repositório**: lido automaticamente pelo Docker Compose. Define `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `PORT`, `FRED_API_KEY` e `FRONTEND_ORIGIN`, repassados ao container do backend, e `VITE_API_BASE_URL`, repassada ao container do frontend. Note que `VITE_API_BASE_URL` aponta para `http://localhost:3000` (a porta do backend mapeada no host), não para `http://backend:3000` (hostname interno do Compose), porque as chamadas à API partem do navegador do usuário, fora da rede interna do Docker.
 - **`backend/.env`**: usado quando o backend roda fora do Docker (ex.: `npm run dev`, ou comandos do Prisma CLI localmente). Tem as mesmas variáveis, mas com `DATABASE_URL` já resolvido para `localhost` em vez do hostname `postgres` do Docker.
 
 Antes de subir o projeto, copie o `.env.example` para `.env` em **ambos os lugares**:
@@ -46,9 +46,11 @@ O primeiro comando aplica as migrations (cria as tabelas). O segundo popula o ca
 
 - Health check: [http://localhost:3000/health](http://localhost:3000/health) deve responder `{ "status": "ok" }`.
 - Documentação interativa (Swagger UI): [http://localhost:3000/docs](http://localhost:3000/docs).
-- Frontend: [http://localhost:5173](http://localhost:5173) deve carregar a aplicação web.
+- Frontend: [http://localhost:5173](http://localhost:5173) deve abrir o dashboard do Pulse FX, com os cards dos três indicadores (`usd_brl`, `selic`, `fed_funds_rate`).
 
 ## 5. Rodando os testes
+
+### Backend
 
 Dentro de `backend/`:
 
@@ -66,4 +68,14 @@ No Linux/Mac, a partir da raiz do repositório:
 ```bash
 cd backend
 set -a && source .env && set +a && npm test
+```
+
+### Frontend
+
+Os testes do frontend (`yarn test`, rodando [Vitest](https://vitest.dev/)) são unitários e de componente, com dados mockados diretamente em cada teste. Diferente dos testes de persistência do backend, **não precisam do Postgres nem do backend rodando**.
+
+Com o container do frontend de pé (`docker compose up -d frontend`, a partir da raiz):
+
+```bash
+docker compose exec frontend yarn test
 ```
