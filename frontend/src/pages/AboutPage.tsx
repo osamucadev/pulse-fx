@@ -15,7 +15,8 @@ export function AboutPage() {
     <div className="mx-auto max-w-2xl p-8">
       <Link
         to="/"
-        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-hover"
+        viewTransition
+        className="inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary-hover"
       >
         <ArrowLeft size={16} />
         Voltar ao dashboard

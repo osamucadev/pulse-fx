@@ -1,3 +1,4 @@
+import { Toaster } from 'sonner'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'
 import { Footer } from './components/Footer'
@@ -7,6 +8,7 @@ import { IndicatorDetailPage } from './pages/IndicatorDetailPage'
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <div className="flex min-h-screen flex-col">
         <header className="p-8 pb-0">
           <h1 className="text-4xl font-semibold text-primary">Pulse FX</h1>

@@ -14,3 +14,27 @@
 body {
   @apply font-sans;
 }
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 250ms ease-in-out;
+}
+
+/* Keeps the built-in browser view transition (used for route changes via
+   react-router's `viewTransition` prop) quick and subtle, consistent with
+   the rest of the app's transition durations. No-op in browsers without
+   View Transitions API support (navigation just happens instantly). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+}

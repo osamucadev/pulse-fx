@@ -17,7 +17,7 @@ export function Footer() {
       queryClient.invalidateQueries({ queryKey: ['indicators'] })
       setIsModalOpen(false)
       setFeedback('Dados reiniciados com sucesso.')
-      navigate('/')
+      navigate('/', { viewTransition: true })
       setTimeout(() => setFeedback(null), 4000)
     },
     onError: (error) => {
@@ -39,6 +39,7 @@ export function Footer() {
           {feedback && <span className="text-xs text-gray-500">{feedback}</span>}
           <Link
             to="/about"
+            viewTransition
             className="text-xs font-medium text-gray-500 transition-colors hover:text-primary"
           >
             Sobre

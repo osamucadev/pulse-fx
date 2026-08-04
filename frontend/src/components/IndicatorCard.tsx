@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Star } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { toggleFavorite, type Indicator } from '../api/client'
 import { formatLastValue, formatReferenceDate } from '../utils/formatIndicator'
 import { VariationBadge } from './VariationBadge'
@@ -27,8 +28,16 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
 
       return { previousIndicators }
     },
+    onSuccess: (_data, nextIsFavorite) => {
+      toast.success(
+        nextIsFavorite
+          ? `${indicator.name} adicionado aos favoritos`
+          : `${indicator.name} removido dos favoritos`,
+      )
+    },
     onError: (error, _nextIsFavorite, context) => {
       console.error(`Failed to update favorite for indicator "${indicator.code}"`, error)
+      toast.error(`Não foi possível atualizar o favorito de ${indicator.name}`)
 
       if (context?.previousIndicators) {
         queryClient.setQueryData(['indicators'], context.previousIndicators)
@@ -41,7 +50,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
 
   return (
     <div
-      className={`relative rounded-lg border p-4 shadow-sm ${
+      className={`relative rounded-lg border p-4 shadow-sm transition-all duration-200 ease-in-out hover:shadow-md ${
         indicator.isFavorite ? 'border-primary' : 'border-gray-200'
       }`}
     >
@@ -50,7 +59,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
         onClick={() => favoriteMutation.mutate(!indicator.isFavorite)}
         disabled={favoriteMutation.isPending}
         aria-label={indicator.isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-        className="absolute right-3 top-3 text-primary disabled:cursor-not-allowed disabled:opacity-60"
+        className="absolute right-3 top-3 text-primary transition-transform duration-150 ease-in-out hover:scale-110 disabled:cursor-not-allowed disabled:opacity-60"
       >
         <Star size={20} fill={indicator.isFavorite ? 'currentColor' : 'none'} />
       </button>
@@ -66,7 +75,8 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
       </div>
       <Link
         to={`/indicators/${indicator.code}`}
-        className="mt-3 inline-block text-sm font-medium text-primary hover:text-primary-hover"
+        viewTransition
+        className="mt-3 inline-block text-sm font-medium text-primary transition-colors hover:text-primary-hover"
       >
         Ver detalhes
       </Link>

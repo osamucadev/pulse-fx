@@ -41,7 +41,7 @@ export function Dashboard() {
   return (
     <>
       <SyncBanner hasMissingData={hasMissingData} onSync={handleSync} />
-      <div className="grid grid-cols-1 gap-4 p-8 md:grid-cols-3">
+      <div className="animate-fade-in grid grid-cols-1 gap-4 p-8 md:grid-cols-3">
         {indicators?.map((indicator) => (
           <IndicatorCard key={indicator.id} indicator={indicator} />
         ))}

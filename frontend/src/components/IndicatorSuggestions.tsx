@@ -21,6 +21,7 @@ export function IndicatorSuggestions({ excludeCode }: IndicatorSuggestionsProps)
         <Link
           key={indicator.id}
           to={`/indicators/${indicator.code}`}
+          viewTransition
           className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-left transition-colors hover:border-primary-light-alt hover:bg-primary-light"
         >
           <p className="text-xs font-medium text-gray-400">{indicator.name}</p>

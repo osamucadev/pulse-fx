@@ -36,19 +36,20 @@ export function ConfirmModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onCancel])
 
-  if (!isOpen) {
-    return null
-  }
-
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      aria-hidden={!isOpen}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 transition-opacity duration-200 ease-in-out ${
+        isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+      }`}
       onClick={onCancel}
     >
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg"
+        className={`w-full max-w-sm rounded-lg bg-white p-6 shadow-lg transition-all duration-200 ease-in-out ${
+          isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
         onClick={(event) => event.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
