@@ -26,7 +26,7 @@ USD/BRL, via BCB Olinda (PTAX), com atualização diária. É o indicador mais n
 
 Selic, via BCB SGS. Entre Selic e IPCA, a Selic foi escolhida por ser uma série numérica mais direta, sem a complexidade adicional de ter que diferenciar mês de referência e mês de divulgação, o que reduz risco de erro na regra de variação percentual.
 
-Um indicador americano via FRED (ainda a definir qual exatamente, entre opções como Fed Funds Rate ou CPI). Essa escolha final ainda está em aberto e será fechada durante a implementação da integração com o FRED.
+Um indicador americano via FRED: Fed Funds Rate. Foi escolhido por ser o paralelo mais direto com a Selic, ambos são a taxa básica de juros definida pelo banco central de cada país, o que facilita a narrativa comparativa do produto (juros Brasil x EUA lado a lado).
 
 ## Persistência e ORM
 
@@ -82,4 +82,4 @@ Se autenticação for adicionada no futuro, esse campo precisaria ser repensado 
 
 ## Pontos em aberto
 
-Ainda falta decidir qual indicador específico do FRED será usado, e os detalhes finos de nomenclatura das rotas da API. Esses pontos serão fechados durante a implementação e, se necessário, este documento será atualizado.
+Não há pendências de decisão no momento. Se surgir alguma durante a implementação, este documento será atualizado.
