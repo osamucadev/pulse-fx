@@ -36,4 +36,16 @@ export class PrismaIndicatorObservationRepository
       ),
     );
   }
+
+  async findByIndicatorId(indicatorId: string): Promise<ObservationInput[]> {
+    const observations = await prisma.indicatorObservation.findMany({
+      where: { indicatorId },
+      orderBy: { referenceDate: "asc" },
+    });
+
+    return observations.map((observation) => ({
+      referenceDate: observation.referenceDate,
+      value: observation.value.toNumber(),
+    }));
+  }
 }

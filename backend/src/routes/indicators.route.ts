@@ -1,13 +1,18 @@
 import { Router } from "express";
-import { toIndicatorSummary } from "../domain/entities/indicator.js";
+import {
+  toIndicatorDetail,
+  toIndicatorSummary,
+} from "../domain/entities/indicator.js";
 import type { SyncRange } from "../domain/services/indicator-sync.service.js";
 import { syncIndicator } from "../domain/services/indicator-sync.service.js";
 import { shouldSync } from "../domain/services/sync-policy.js";
+import { PrismaIndicatorObservationRepository } from "../infra/prisma/indicator-observation.repository.js";
 import { PrismaIndicatorRepository } from "../infra/prisma/indicator.repository.js";
 
 export const indicatorsRouter = Router();
 
 const indicatorRepository = new PrismaIndicatorRepository();
+const observationRepository = new PrismaIndicatorObservationRepository();
 
 const SYNC_RANGE_DAYS = 90;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -47,9 +52,10 @@ indicatorsRouter.get("/indicators", async (_req, res) => {
  *   get:
  *     summary: Get a single indicator by code
  *     description: >
- *       Returns one indicator. Before responding, checks whether its data
- *       is older than syncTtlMinutes; if so, fetches fresh data from the
- *       external source and persists it first (passive TTL sync).
+ *       Returns one indicator with its latest value and percentage
+ *       variation. Before responding, checks whether its data is older
+ *       than syncTtlMinutes; if so, fetches fresh data from the external
+ *       source and persists it first (passive TTL sync).
  *     parameters:
  *       - in: path
  *         name: code
@@ -60,11 +66,11 @@ indicatorsRouter.get("/indicators", async (_req, res) => {
  *         description: Indicator code (usd_brl, selic, fed_funds_rate).
  *     responses:
  *       200:
- *         description: The indicator.
+ *         description: The indicator, including its latest value and variation.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/IndicatorSummary'
+ *               $ref: '#/components/schemas/IndicatorDetail'
  *       404:
  *         description: No indicator exists with the given code.
  *         content:
@@ -92,14 +98,18 @@ indicatorsRouter.get("/indicators/:code", async (req, res) => {
     now,
   });
 
-  if (!needsSync) {
-    res.status(200).json(toIndicatorSummary(indicator));
-    return;
+  if (needsSync) {
+    await syncIndicator(indicator, last90DaysRange(now));
   }
 
-  await syncIndicator(indicator, last90DaysRange(now));
-  const updated = await indicatorRepository.findByCode(code);
-  res.status(200).json(toIndicatorSummary(updated ?? indicator));
+  const current = needsSync
+    ? ((await indicatorRepository.findByCode(code)) ?? indicator)
+    : indicator;
+  const observations = await observationRepository.findByIndicatorId(
+    current.id,
+  );
+
+  res.status(200).json(toIndicatorDetail(current, observations));
 });
 
 /**

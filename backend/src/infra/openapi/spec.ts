@@ -35,6 +35,46 @@ export const openApiSpec = swaggerJsdoc({
             updatedAt: "2026-08-04T00:11:40.930Z",
           },
         },
+        IndicatorDetail: {
+          allOf: [
+            { $ref: "#/components/schemas/IndicatorSummary" },
+            {
+              type: "object",
+              properties: {
+                lastValue: {
+                  type: "number",
+                  nullable: true,
+                  description: "Most recent persisted value, or null if the indicator has no observations yet.",
+                },
+                lastReferenceDate: {
+                  type: "string",
+                  format: "date",
+                  nullable: true,
+                  description: "Reference date of lastValue, or null if the indicator has no observations yet.",
+                },
+                variationPercent: {
+                  type: "number",
+                  nullable: true,
+                  description: "Percentage variation against the reference window for the indicator's type (7 business-day observations for fx, 1 calendar month for macro), or null if there isn't enough history yet.",
+                },
+              },
+            },
+          ],
+          example: {
+            id: "9168688f-ad26-4751-9321-856eb060b574",
+            code: "usd_brl",
+            name: "Dólar Americano (PTAX)",
+            source: "bcb",
+            type: "fx",
+            description:
+              "Cotação de fechamento do dólar americano frente ao real, calculada pelo Banco Central através da pesquisa PTAX.",
+            createdAt: "2026-08-03T23:23:29.102Z",
+            updatedAt: "2026-08-04T00:11:40.930Z",
+            lastValue: 5.4321,
+            lastReferenceDate: "2026-08-03",
+            variationPercent: 1.85,
+          },
+        },
         ErrorMessage: {
           type: "object",
           properties: {
