@@ -162,6 +162,10 @@ Na primeira visita à aplicação, o tour começa sozinho, controlado por uma ch
 
 O botão "Revisitar tour", no rodapé, permite rodar o tour de novo a qualquer momento, reiniciando do passo 0 e reavaliando as condições com os dados atuais. Por isso a mesma sessão pode ver o tour de 12 passos numa primeira execução, e de 10 passos numa execução seguinte, depois de sincronizar tudo.
 
+## Decisão: ESLint no backend
+
+O backend usa ESLint com `typescript-eslint`, no formato flat config (`eslint.config.js`), mesmo padrão já usado no frontend. A configuração usa `js.configs.recommended` e `tseslint.configs.recommended` (o preset padrão, sem o type-checked, que exigiria apontar pro `tsconfig.json` e deixaria o lint mais lento) sem regras adicionais de estilo, evitando ruído cosmético num projeto que já não tinha lint configurado até agora. O diretório `src/generated` (cliente Prisma gerado automaticamente) fica de fora do lint, por não ser código escrito à mão. Rodado contra o código existente, não encontrou nenhum problema real, então nenhuma correção de código foi necessária além da configuração em si.
+
 ## Pontos em aberto
 
 Não há pendências de decisão no momento. Se surgir alguma durante a implementação, este documento será atualizado.

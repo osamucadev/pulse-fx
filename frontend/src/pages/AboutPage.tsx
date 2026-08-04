@@ -10,7 +10,7 @@ const decisions = [
   'Favoritos: campo isFavorite simples na tabela de indicadores, não uma relação usuário-indicador, porque o MVP é single-user sem autenticação.',
   'Reset de demonstração: o endpoint POST /admin/reset apaga os dados sincronizados de todos os indicadores para recomeçar do zero, sem autenticação pela mesma razão dos favoritos: o MVP é single-user.',
   'Tour guiado: um passo a passo interativo apresenta o produto na primeira visita e pode ser revisitado a qualquer momento pelo botão no rodapé.',
-  'Dívidas técnicas conhecidas: gerenciador de pacotes inconsistente entre as pastas (Yarn no frontend, npm no backend); falta de lint configurado no backend; frontend roda em modo dev dentro do Docker, não como build de produção.',
+  'Dívidas técnicas conhecidas: gerenciador de pacotes inconsistente entre as pastas (Yarn no frontend, npm no backend); frontend roda em modo dev dentro do Docker, não como build de produção.',
 ]
 
 export function AboutPage() {

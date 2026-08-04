@@ -79,3 +79,23 @@ Com o container do frontend de pé (`docker compose up -d frontend`, a partir da
 ```bash
 docker compose exec frontend yarn test
 ```
+
+## 6. Lint
+
+### Backend
+
+Dentro de `backend/`:
+
+```bash
+npm run lint
+```
+
+Roda o ESLint (flat config, `typescript-eslint` recomendado) contra todo o código TypeScript do projeto, exceto o cliente Prisma gerado (`src/generated`). Não precisa do Postgres nem de nenhum serviço rodando.
+
+### Frontend
+
+Dentro de `frontend/`:
+
+```bash
+yarn lint
+```
