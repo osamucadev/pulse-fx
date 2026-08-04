@@ -28,6 +28,22 @@ export type IndicatorSummary = Pick<
   | 'updatedAt'
 >
 
+export interface IndicatorObservation {
+  referenceDate: string
+  value: number
+}
+
+export interface IndicatorDetail extends Indicator {
+  observations: IndicatorObservation[]
+}
+
+export class IndicatorNotFoundError extends Error {
+  constructor(code: string) {
+    super(`Indicator "${code}" not found`)
+    this.name = 'IndicatorNotFoundError'
+  }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export async function fetchIndicators(): Promise<Indicator[]> {
@@ -77,6 +93,20 @@ export async function syncIndicator(code: string): Promise<SyncResult> {
       message: error instanceof Error ? error.message : `Failed to sync indicator "${code}"`,
     }
   }
+}
+
+export async function fetchIndicatorDetail(code: string): Promise<IndicatorDetail> {
+  const response = await fetch(`${API_BASE_URL}/indicators/${code}`)
+
+  if (response.status === 404) {
+    throw new IndicatorNotFoundError(code)
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch indicator "${code}": ${response.status}`)
+  }
+
+  return response.json()
 }
 
 export async function toggleFavorite(
