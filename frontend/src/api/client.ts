@@ -109,6 +109,16 @@ export async function fetchIndicatorDetail(code: string): Promise<IndicatorDetai
   return response.json()
 }
 
+export async function resetData(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/admin/reset`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to reset data: ${response.status}`)
+  }
+}
+
 export async function toggleFavorite(
   code: string,
   isFavorite: boolean,

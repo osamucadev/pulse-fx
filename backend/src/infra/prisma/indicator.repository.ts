@@ -24,4 +24,8 @@ export class PrismaIndicatorRepository implements IndicatorRepository {
       data: { isFavorite },
     });
   }
+
+  async resetAllSyncState(): Promise<void> {
+    await prisma.indicator.updateMany({ data: { lastSyncedAt: null } });
+  }
 }

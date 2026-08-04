@@ -46,11 +46,13 @@ function buildApp(
     findByCode: async (code) => (code === indicator.code ? indicator : null),
     updateLastSyncedAt: async () => {},
     setFavorite: async () => {},
+    resetAllSyncState: async () => {},
   };
 
   const observationRepository: IndicatorObservationRepository = {
     upsertMany: async () => {},
     findByIndicatorId: async () => [],
+    deleteAll: async () => {},
   };
 
   const app = express();

@@ -100,6 +100,14 @@ Uma nuance importante é a variável `VITE_API_BASE_URL`, que precisa apontar pa
 
 O serviço `frontend` também monta `./frontend:/app` como bind mount, com `/app/node_modules` como volume anônimo separado por cima (pra não deixar o `node_modules` do host, se existir, sobrescrever o que foi instalado dentro da imagem). Isso permite que edições feitas localmente em `frontend/` sejam vistas pelo Vite dev server rodando no container e disparem hot reload, sem precisar de rebuild da imagem a cada mudança. Rebuild só é necessário quando `package.json` ou `yarn.lock` mudam (nova dependência).
 
+## Decisão: endpoint `POST /admin/reset` sem autenticação
+
+Foi adicionado um endpoint `POST /admin/reset`, que apaga todas as observações persistidas (`IndicatorObservation`) e limpa `lastSyncedAt` de todos os indicadores, devolvendo o sistema a um estado equivalente ao logo após o seed (catálogo presente, nenhum dado sincronizado ainda).
+
+Esse endpoint existe exclusivamente para fins de demonstração e teste do MVP, por exemplo pra resetar o estado antes de gravar um vídeo de demonstração ou antes de uma nova avaliação, sem precisar derrubar o banco e rodar migration/seed manualmente de novo. Ele é disparado pelo botão "Reiniciar teste" no rodapé do frontend.
+
+Assim como a decisão já registrada sobre favoritos, esse endpoint não tem autenticação nem qualquer proteção porque o projeto inteiro é single-user, sem conceito de usuário autenticado (fora de escopo, conforme o briefing). Fica registrado aqui, de forma explícita, que um endpoint como esse, capaz de apagar dados em massa sem confirmação além da do próprio cliente, jamais deveria existir sem controle de acesso adequado (autenticação, autorização, e provavelmente nem deveria estar acessível publicamente) em um sistema real de produção. Ele é aceitável aqui apenas porque o escopo do desafio é um MVP de demonstração, não um produto em produção com dados de usuários reais.
+
 ## Pontos em aberto
 
 Não há pendências de decisão no momento. Se surgir alguma durante a implementação, este documento será atualizado.

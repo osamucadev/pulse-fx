@@ -48,4 +48,8 @@ export class PrismaIndicatorObservationRepository
       value: observation.value.toNumber(),
     }));
   }
+
+  async deleteAll(): Promise<void> {
+    await prisma.indicatorObservation.deleteMany();
+  }
 }
