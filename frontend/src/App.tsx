@@ -1,7 +1,12 @@
+import { Dashboard } from './components/Dashboard'
+
 function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-4xl font-semibold text-primary">Pulse FX</h1>
+    <main className="min-h-screen">
+      <header className="p-8 pb-0">
+        <h1 className="text-4xl font-semibold text-primary">Pulse FX</h1>
+      </header>
+      <Dashboard />
     </main>
   )
 }
