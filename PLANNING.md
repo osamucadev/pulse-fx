@@ -50,11 +50,39 @@ Séries de câmbio (indicador `usd_brl`, tipo `fx`): a referência é a observa�
 
 Séries macroeconômicas (indicadores `selic` e `fed_funds_rate`, tipo `macro`): a referência é o valor de 1 mês de calendário atrás. Como Selic e Fed Funds Rate não mudam todo dia (a Selic fica constante entre reuniões do Copom, por exemplo), a regra usa o último dado conhecido igual ou anterior a essa data, em vez de exigir um valor exatamente naquela data ou interpolar entre pontos, seguindo a mesma lógica de "não inventar dado que a fonte não forneceu" já usada na modelagem de observações.
 
-Nota de evolução futura: esses intervalos (7 dias úteis pra FX, 1 mês pra macro) são fixos nessa versão do MVP, definidos por tipo de indicador. Uma evolução natural seria deixar o usuário escolher o intervalo de comparação pelo frontend, tornando esse N configurável por indicador em vez de fixo por tipo.
+Os valores acima (7 dias úteis pra FX, 1 mês pra macro) continuam sendo o default usado pelo dashboard e sempre que nenhum intervalo é escolhido. O que era registrado aqui como "nota de evolução futura" já foi implementado: `GET /indicators/:code` aceita um query param opcional `lookback` (inteiro positivo), que sobrescreve esse N por requisição, sem mudar o default nem afetar `GET /indicators` (a listagem do dashboard nunca usa esse parâmetro). Um `lookback` inválido (não numérico, zero ou negativo) retorna 400.
+
+Na tela de detalhe do frontend, esse parâmetro é exposto como um dropdown com valores pré-definidos por tipo, em vez de um campo numérico livre: 7 (default), 15 ou 30 dias úteis pra `fx`; 1 (default), 3 ou 6 meses pra `macro`. Presets em vez de um input livre porque o objetivo é deixar o usuário comparar contra períodos que fazem sentido pro tipo de série, não digitar qualquer número arbitrário.
+
+O cálculo da variação em si sempre usa o histórico completo já persistido pro indicador, nunca o recorte devolvido em `observations`, justamente pra um lookback maior (como 6 meses) conseguir achar uma referência válida mesmo que o gráfico exiba uma janela menor. Ainda assim, se o `lookback` escolhido for maior do que o histórico que o banco realmente tem sincronizado, a variação retorna `null`, o mesmo comportamento de "não inventar dado que a fonte não forneceu" já esperado em outros pontos da regra de variação.
 
 ### Janela de histórico retornada por `GET /indicators/:code`
 
-O campo `observations` da resposta de detalhe do indicador retorna os últimos 90 dias corridos de histórico, o mesmo intervalo já usado para buscar dado novo na sincronização (`SYNC_RANGE_DAYS`). A decisão foi usar a mesma janela pros dois tipos de indicador (`fx` e `macro`), em vez de janelas diferentes por tipo, porque 90 dias já é folgado o bastante pras duas regras de variação: cobre com sobra tanto os 7 dias úteis usados por `fx` quanto o 1 mês usado por `macro`, então uma única janela é suficiente pra alimentar corretamente o cálculo de variação e ainda entregar dado o bastante pro gráfico de evolução da tela de detalhe, sem precisar de uma regra separada por tipo nesse ponto específico.
+O campo `observations` é sempre calculado dinamicamente a partir do lookback efetivo: o valor vindo do query param `lookback`, ou o default do `type` do indicador (7 dias úteis pra `fx`, 1 mês pra `macro`) quando o param não é enviado. Não existe mais um caminho separado que force uma janela fixa de 90 dias independente do lookback, nem quando a requisição vem sem esse parâmetro.
+
+O motivo de não ter mais um caminho fixo: uma versão anterior dessa etapa fazia `GET /indicators/:code?lookback=6` calcular a janela dinamicamente, mas o carregamento inicial da tela de detalhe (sem `lookback` na URL ainda, antes do usuário mexer no dropdown) continuava caindo num valor fixo de 90 dias. Isso é inconsistente: a variação exibida já é calculada contra o lookback default (7 dias úteis / 1 mês) desde o primeiro carregamento, mas o gráfico mostrava uma janela de 90 dias sem relação direta com esse default, então o ponto de referência ficava perdido em algum lugar no meio de um gráfico bem mais largo do que o necessário. Unificar num único caminho, sempre a partir do lookback efetivo, resolve isso pra todos os casos (com ou sem o parâmetro) de uma vez.
+
+A janela dinâmica é calculada em duas partes, em `dynamicHistoryWindowDays` (`backend/src/routes/indicators.route.ts`):
+
+1. **Período mínimo necessário pra alcançar a referência** (`referenceSpanDaysFor`), convertido pra dias corridos a partir do `lookback` e do `type`:
+   - `fx`: o `lookback` conta posições de dias úteis no histórico persistido (só dias de pregão são salvos), então a conversão usa a proporção padrão de 5 dias úteis por 7 dias corridos (`lookback * 7 / 5`, arredondado pra cima).
+   - `macro`: o `lookback` já é em meses de calendário, convertido usando 31 dias por mês (limite superior seguro, cobre qualquer mês real).
+2. **Margem de contexto**: 30% a mais sobre esse período mínimo, mais um piso fixo de 5 dias. O piso fixo existe porque só o percentual não é suficiente pra presets pequenos (o preset default de `fx`, 7 dias úteis, sem o piso ficava com só 1 observação de folga antes do ponto de referência, ainda "colado" na borda esquerda do gráfico na prática).
+
+Essa aproximação é intencionalmente só pra dimensionar a janela de exibição, não pra calcular a variação (que, como já dito acima, usa sempre o histórico completo real, sem aproximação). Um erro de alguns dias na janela do gráfico não muda nenhum número exibido, só quanto contexto aparece ao redor do ponto de referência.
+
+Um efeito colateral esperado: pra `lookback=6` (macro), a janela dinâmica pode pedir mais dias do que o `MACRO_SYNC_RANGE_DAYS` (200 dias) realmente tem sincronizado. Nesse caso a janela retornada simplesmente mostra todo o histórico disponível (o filtro por data não exclui nada que exista, só nada aparece antes do que foi de fato sincronizado), sem erro e sem inventar dado, na mesma linha do restante da regra de variação.
+
+### Intervalo de busca externa na sincronização (`syncIndicator`)
+
+Diferente da janela de exibição acima, o intervalo de dados buscado nas fontes externas a cada sincronização (`SyncRange` passado pra `syncIndicator`) precisa ser grande o bastante pra cobrir o maior `lookback` que o cálculo de variação pode receber, senão o banco nunca chega a ter dado suficiente pra uma comparação de vários meses atrás, mesmo com a lógica de cálculo correta (esse foi exatamente o bug observado ao testar o preset de 6 meses pra indicadores `macro`: `variationPercent` vinha `null` porque só havia ~90 dias de histórico persistido).
+
+Esse intervalo é diferenciado por tipo de indicador, em vez de um único valor pra todos:
+
+- `fx`: 90 dias. O maior preset de `lookback` oferecido no frontend pra esse tipo é 30 dias úteis (cerca de 42 dias corridos), então o intervalo já em uso segue com folga de sobra, sem necessidade de aumentar.
+- `macro`: 200 dias. O maior preset de `lookback` oferecido pra esse tipo é 6 meses (cerca de 183 dias corridos), então o intervalo precisou crescer pra cobrir esse caso com margem de segurança.
+
+A alternativa considerada foi manter um único intervalo (200 dias) pra todos os indicadores, por simplicidade de um valor só. Foi descartada porque criaria uma assimetria sem necessidade real: `fx` não usa lookback além de 30 dias úteis, então buscar mais de 2x o histórico que ele nunca vai precisar significa mais chamadas HTTP à API do BCB (mesmo que dentro do mesmo request de sync) e mais linhas persistidas sem propósito. Diferenciar por tipo aqui segue o mesmo raciocínio já usado na regra de variação em si (fx e macro já têm unidades de comparação diferentes), então não é uma complexidade nova sendo introduzida, é a mesma diferenciação por tipo se estendendo pra mais um ponto do sistema.
 
 ## Modelagem de dados
 

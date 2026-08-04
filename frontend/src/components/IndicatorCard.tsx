@@ -72,7 +72,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
         {formatLastValue(indicator.type, indicator.lastValue)}
       </p>
       <p className="mt-1 text-xs text-gray-400">
-        {formatReferenceDate(indicator.lastReferenceDate)}
+        <span className="font-medium">Ref.:</span> {formatReferenceDate(indicator.lastReferenceDate)}
       </p>
       <div className="mt-2 text-sm font-medium">
         <VariationBadge variationPercent={indicator.variationPercent} />

@@ -95,8 +95,16 @@ export async function syncIndicator(code: string): Promise<SyncResult> {
   }
 }
 
-export async function fetchIndicatorDetail(code: string): Promise<IndicatorDetail> {
-  const response = await fetch(`${API_BASE_URL}/indicators/${code}`)
+export async function fetchIndicatorDetail(
+  code: string,
+  lookback?: number,
+): Promise<IndicatorDetail> {
+  const url = new URL(`${API_BASE_URL}/indicators/${code}`)
+  if (lookback !== undefined) {
+    url.searchParams.set('lookback', String(lookback))
+  }
+
+  const response = await fetch(url)
 
   if (response.status === 404) {
     throw new IndicatorNotFoundError(code)

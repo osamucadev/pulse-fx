@@ -50,12 +50,14 @@ export interface IndicatorWithVariation extends IndicatorSummary {
 export function toIndicatorWithVariation(
   indicator: Indicator,
   observations: VariationObservation[],
+  lookback?: number,
 ): IndicatorWithVariation {
   const summary = toIndicatorSummary(indicator);
   const last = observations[observations.length - 1] ?? null;
   const variation = calculateVariation(
     indicator.type as IndicatorType,
     observations,
+    lookback,
   );
 
   return {
@@ -73,9 +75,10 @@ export interface IndicatorDetail extends IndicatorWithVariation {
 export function toIndicatorDetail(
   indicator: Indicator,
   observations: VariationObservation[],
+  lookback?: number,
 ): IndicatorDetail {
   return {
-    ...toIndicatorWithVariation(indicator, observations),
+    ...toIndicatorWithVariation(indicator, observations, lookback),
     observations,
   };
 }

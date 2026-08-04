@@ -119,3 +119,42 @@ test("macro: returns null when no observation exists before the target date", ()
 
   assert.equal(result, null);
 });
+
+test("fx: supports a custom lookback (3 positions back instead of the default 7)", () => {
+  const dates = daysFrom("2026-07-20T00:00:00.000Z", 4); // only 4 observations
+  const observations = dates.map((referenceDate) => ({
+    referenceDate,
+    value: 5.0,
+  }));
+  observations[3].value = 5.5; // current, 3 positions after index 0
+
+  // The default lookback (7) would return null here, since there aren't
+  // enough observations; a custom lookback of 3 fits within the array.
+  const result = calculateVariation("fx", observations, 3);
+
+  assert.deepEqual(result, {
+    current: 5.5,
+    reference: 5.0,
+    variationPercent: 10,
+  });
+});
+
+test("macro: supports a custom lookback (3 calendar months back instead of the default 1)", () => {
+  const dates = daysFrom("2026-05-01T00:00:00.000Z", 95); // 2026-05-01 .. 2026-08-03
+  const observations = dates.map((referenceDate) => ({
+    referenceDate,
+    value: 14.25,
+  }));
+  // 2026-05-03 is exactly three months before the last date, 2026-08-03.
+  const mayThirdIndex = 2;
+  observations[mayThirdIndex].value = 15.0;
+  observations[observations.length - 1].value = 14.0; // current
+
+  const result = calculateVariation("macro", observations, 3);
+
+  assert.deepEqual(result, {
+    current: 14.0,
+    reference: 15.0,
+    variationPercent: ((14.0 - 15.0) / 15.0) * 100,
+  });
+});
