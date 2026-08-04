@@ -4,9 +4,9 @@ Pulse FX é um MVP para acompanhar câmbio (USD/BRL) e indicadores macroeconômi
 
 ## Demonstração
 
-<video src="./demonstration.mp4" controls width="100%">
-  Seu navegador não suporta a tag de vídeo. Baixe o arquivo diretamente: <a href="./demonstration.mp4">demonstration.mp4</a>.
-</video>
+[![Pulse FX - Demonstração](https://img.youtube.com/vi/3daUy5KSOso/maxresdefault.jpg)](https://youtu.be/3daUy5KSOso)
+
+Ou baixe o vídeo diretamente: [demonstration.mp4](./demonstration.mp4).
 
 **Stack:** Node.js, TypeScript, Express e Prisma no backend; PostgreSQL como banco; React, TypeScript, Vite e Tailwind CSS no frontend; tudo containerizado com Docker Compose.
 
