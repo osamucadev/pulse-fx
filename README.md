@@ -2,6 +2,12 @@
 
 Pulse FX é um MVP para acompanhar câmbio (USD/BRL) e indicadores macroeconômicos (Selic, Fed Funds Rate) a partir de fontes públicas. O dashboard mostra o último valor e a variação de cada indicador, a tela de detalhe traz o histórico em gráfico com o intervalo de comparação configurável, é possível marcar favoritos, e um tour guiado interativo apresenta o produto na primeira visita. Este repositório foi desenvolvido em resposta ao desafio técnico full stack da Thomson Reuters, descrito em CHALLENGE.md.
 
+## Demonstração
+
+<video src="./demonstration.mp4" controls width="100%">
+  Seu navegador não suporta a tag de vídeo. Baixe o arquivo diretamente: <a href="./demonstration.mp4">demonstration.mp4</a>.
+</video>
+
 **Stack:** Node.js, TypeScript, Express e Prisma no backend; PostgreSQL como banco; React, TypeScript, Vite e Tailwind CSS no frontend; tudo containerizado com Docker Compose.
 
 - [`CHALLENGE.md`](./CHALLENGE.md): briefing original do desafio, com requisitos e critérios de avaliação.
